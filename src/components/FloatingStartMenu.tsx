@@ -40,7 +40,7 @@ const FloatingStartMenu = () => {
         textAlign: 'center',
         width: '100%',
         maxWidth: '100vw',
-        padding: '0 20px',
+        padding: '40px 20px 0 20px',
         boxSizing: 'border-box'
       }}>
         {/* PRESS START Title */}
