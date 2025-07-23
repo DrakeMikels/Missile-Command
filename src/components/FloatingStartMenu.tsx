@@ -96,6 +96,60 @@ const FloatingStartMenu = () => {
         >
           START GAME
         </button>
+
+        {/* Donation Button */}
+        <div style={{ marginTop: '30px' }}>
+          <a
+            href="https://venmo.com/u/Mike-Drake-1"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'inline-block',
+              background: 'linear-gradient(45deg, #00ffff, #0088cc)',
+              border: '2px solid #00ffff',
+              borderRadius: '0',
+              color: '#000',
+              fontSize: 'clamp(0.8rem, 2vw, 1rem)',
+              fontWeight: 'bold',
+              fontFamily: 'monospace',
+              padding: 'clamp(6px, 1.5vw, 10px) clamp(15px, 3vw, 20px)',
+              cursor: 'pointer',
+              textTransform: 'uppercase',
+              letterSpacing: '2px',
+              textDecoration: 'none',
+              textShadow: '0 0 5px rgba(0, 255, 255, 0.8)',
+              boxShadow: '0 0 15px rgba(0, 255, 255, 0.4), inset 0 0 15px rgba(0, 255, 255, 0.1)',
+              transition: 'all 0.3s ease',
+              transform: 'translateY(0)',
+              position: 'relative',
+              overflow: 'hidden',
+              touchAction: 'manipulation'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-2px)';
+              e.currentTarget.style.boxShadow = '0 0 25px rgba(0, 255, 255, 0.6), inset 0 0 25px rgba(0, 255, 255, 0.2)';
+              e.currentTarget.style.background = 'linear-gradient(45deg, #00ffff, #00aaff)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 0 15px rgba(0, 255, 255, 0.4), inset 0 0 15px rgba(0, 255, 255, 0.1)';
+              e.currentTarget.style.background = 'linear-gradient(45deg, #00ffff, #0088cc)';
+            }}
+          >
+            <span style={{ fontSize: '1.5em', marginRight: '8px' }}>☕</span>
+            Buy Me a Coffee
+          </a>
+          <p style={{
+            color: '#00ffff',
+            fontSize: 'clamp(0.7rem, 1.8vw, 0.9rem)',
+            marginTop: '8px',
+            fontFamily: 'monospace',
+            opacity: 0.8,
+            textShadow: '0 0 5px rgba(0, 255, 255, 0.5)'
+          }}>
+            Support retro gaming development!
+          </p>
+        </div>
       </div>
       
       {/* CSS Animations */}

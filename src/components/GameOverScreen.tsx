@@ -122,6 +122,39 @@ const GameOverScreen = () => {
         }}>
           {score > 50000 ? 'NEW HIGH SCORE!' : 'TRY FOR A HIGHER SCORE!'}
         </div>
+
+        {/* Subtle Donation Link */}
+        <div style={{ marginTop: '25px' }}>
+          <a
+            href="https://venmo.com/u/Mike-Drake-1"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'inline-block',
+              color: '#00ffff',
+              fontSize: 'clamp(0.6rem, 1.5vw, 0.8rem)',
+              fontFamily: 'monospace',
+              textDecoration: 'none',
+              opacity: 0.7,
+              transition: 'all 0.3s ease',
+              textShadow: '0 0 3px rgba(0, 255, 255, 0.5)',
+              borderBottom: '1px solid transparent'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.opacity = '1';
+              e.currentTarget.style.textShadow = '0 0 8px rgba(0, 255, 255, 0.8)';
+              e.currentTarget.style.borderBottom = '1px solid #00ffff';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.opacity = '0.7';
+              e.currentTarget.style.textShadow = '0 0 3px rgba(0, 255, 255, 0.5)';
+              e.currentTarget.style.borderBottom = '1px solid transparent';
+            }}
+          >
+            <span style={{ fontSize: '1.3em', marginRight: '6px' }}>☕</span>
+            Enjoyed the game? Buy me a coffee!
+          </a>
+        </div>
       </div>
       
       {/* CSS Animations */}

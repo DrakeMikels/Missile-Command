@@ -73,15 +73,17 @@ const createInitialCities = (): City[] => {
   const cityCount = 6;
   const cities: City[] = [];
   
-  // Responsive spacing - cities spread across screen width
-  // Using a wider spread for better screen coverage
-  const screenWidth = 16; // Adjusted for better screen coverage
-  const spacing = screenWidth / (cityCount + 1);
+  // Mobile-first responsive positioning
+  // Use a safe zone to ensure all cities are visible on narrow screens
+  const safeZoneWidth = 10; // Conservative width that works on most mobile devices
+  const edgePadding = 1; // Padding from screen edges
+  const usableWidth = safeZoneWidth - (edgePadding * 2);
+  const spacing = usableWidth / (cityCount - 1); // Space between cities
   
   for (let i = 0; i < cityCount; i++) {
     cities.push({
       id: `city-${i}`,
-      x: (i + 1) * spacing - (screenWidth / 2), // Center around 0, spread from -8 to 8
+      x: (i * spacing) - (usableWidth / 2), // Evenly distributed from -4 to +4
       destroyed: false,
     });
   }
