@@ -45,10 +45,10 @@ const FloatingStartMenu = () => {
       }}>
         {/* PRESS START Title */}
         <div style={{
-          fontSize: 'clamp(1.2rem, 6vw, 4rem)',
+          fontSize: 'clamp(1.1rem, 5.5vw, 4rem)',
           fontWeight: 'bold',
           fontFamily: 'monospace',
-          letterSpacing: 'clamp(1px, 0.8vw, 8px)',
+          letterSpacing: 'clamp(1px, 0.7vw, 8px)',
           marginBottom: '20px',
           textTransform: 'uppercase',
           padding: '0 10px',
