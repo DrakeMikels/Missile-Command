@@ -30,16 +30,53 @@ const GameManager = () => {
       setTimeout(() => {
         nextLevel();
         
-        // Play level complete sound
+        // Play level complete sound with special effects for milestone levels
         soundManager.playLevelComplete();
         
-        // Spawn power-ups more often to help players (40% chance per level)
-        if (Math.random() < 0.4) {
+        // Special milestone notifications every 5 levels
+        if (level === 5) {
+          setTimeout(() => {
+            alert('🚀 LEVEL 5 REACHED! 🚀\nYou are showing skill, Commander!\nDifficulty is starting to increase!');
+          }, 1000);
+        } else if (level === 10) {
+          setTimeout(() => {
+            alert('⚡ LEVEL 10 REACHED! ⚡\nThe intensity is ramping up!\nMissiles are getting faster and more frequent!');
+          }, 1000);
+        } else if (level === 15) {
+          setTimeout(() => {
+            alert('🔥 LEVEL 15 REACHED! 🔥\nYou are in the danger zone!\nMissile splits are becoming deadly!');
+          }, 1000);
+        } else if (level === 20) {
+          setTimeout(() => {
+            alert('💀 FINAL LEVEL 20! 💀\nThis is it - the ultimate test!\nSurvive this wave to become the ultimate MISSILE COMMANDER!');
+          }, 1000);
+        }
+        
+        // Spawn power-ups more frequently at higher levels to help players
+        const powerUpChance = 0.3 + (progressRatio * 0.4); // 30% to 70% chance
+        if (Math.random() < powerUpChance) {
           spawnPowerUp();
         }
         
-        lastWaveTimeRef.current = currentTime + 4000; // Increased to 4 second delay
-      }, 3000); // Increased from 2 to 3 seconds
+        // Check for victory at level 20
+        if (level >= 20) {
+          setTimeout(() => {
+            // Victory message - player has beaten the game!
+            alert('🎉 CONGRATULATIONS! You are the ultimate MISSILE COMMANDER! 🎉\n\nYou have successfully defended through all 20 levels!\nFinal Score: ' + useGameStore.getState().score.toLocaleString());
+          }, 2000);
+        }
+        
+        // Dynamic wave timing - early levels much faster for immediate gratification
+        const { level } = useGameStore.getState();
+        const maxLevel = 20;
+        const progressRatio = Math.min(level / maxLevel, 1);
+        
+        // Much shorter delays for early levels
+        const baseWaveDelay = level <= 5 ? 2000 : 4000; // 2s for levels 1-5, then 4s
+        const waveDelay = baseWaveDelay - (progressRatio * 1000); // Fast progression
+        
+        lastWaveTimeRef.current = currentTime + waveDelay;
+      }, level <= 5 ? 1500 : 3000 - (progressRatio * 1500)); // Much faster early level completion
       return;
     }
     
@@ -63,16 +100,23 @@ const GameManager = () => {
     let type: 'scoreMultiplier' | 'shield' | 'rapidFire';
     let value: number;
     
+    // Better power-ups at higher levels
     const rand = Math.random();
-    if (rand < 0.6) {
+    const isHighLevel = level >= 15;
+    
+    if (rand < 0.5) {
       type = 'scoreMultiplier';
-      value = level > 5 ? 3 : 2; // Higher multiplier at higher levels
+      if (isHighLevel) {
+        value = level >= 18 ? 5 : 4; // 4x-5x multiplier at very high levels
+      } else {
+        value = level > 8 ? 3 : 2; // 2x-3x multiplier at mid levels
+      }
     } else if (rand < 0.8) {
       type = 'shield';
-      value = 5000; // Shield duration in ms
+      value = isHighLevel ? 8000 : 5000; // Longer shield duration at high levels
     } else {
       type = 'rapidFire';
-      value = 3000; // Rapid fire duration in ms
+      value = isHighLevel ? 5000 : 3000; // Longer rapid fire at high levels
     }
     
     addPowerUp({
@@ -89,11 +133,30 @@ const GameManager = () => {
     const activeCities = cities.filter(city => !city.destroyed);
     if (activeCities.length === 0) return;
     
-    // Difficulty scaling - gentler progression to keep players engaged longer
-    const baseSpeed = 1.1; // Slightly slower base speed
-    const speedIncrease = Math.min(level * 0.15, 1.8); // More gradual speed increase
-    const missileCount = Math.min(2 + Math.floor(level * 1.2), 12); // Gentler missile count increase
-    const splitChance = Math.min(level * 0.08, 0.4); // Slower split chance progression
+    // Progressive difficulty scaling with level 20 cap - gets very challenging by level 20
+    const maxLevel = 20;
+    const progressRatio = Math.min(level / maxLevel, 1); // 0 to 1 progression
+    
+    // Speed progression: starts at 1.1, ends at 3.2 at level 20
+    const baseSpeed = 1.1;
+    const maxSpeed = 3.2;
+    const speedIncrease = (maxSpeed - baseSpeed) * progressRatio;
+    
+    // Missile count: starts at 1, ends at 20 missiles at level 20 (faster early progression)
+    const minMissiles = 1;
+    const maxMissiles = 20;
+    const missileCount = Math.floor(minMissiles + (maxMissiles - minMissiles) * progressRatio);
+    
+    // Split chance: 0% at level 1, 75% at level 20
+    const maxSplitChance = 0.75;
+    const splitChance = maxSplitChance * progressRatio;
+    
+    // Launch frequency increases dramatically (shorter delays between missiles)
+    // Early levels launch much faster for quick wins
+    const baseLaunchDelay = level <= 3 ? 600 : 1000; // Much faster for levels 1-3
+    const minLaunchDelay = 200; // Very fast at level 20
+    const launchDelayReduction = (baseLaunchDelay - minLaunchDelay) * progressRatio;
+    const currentLaunchDelay = baseLaunchDelay - launchDelayReduction;
     
     for (let i = 0; i < missileCount; i++) {
       // Random delay for each missile
@@ -136,7 +199,7 @@ const GameManager = () => {
             soundManager.playSound('missileLaunch', 0.5, 1.2);
           }, 1000 + Math.random() * 2000);
         }
-      }, i * (1200 + Math.random() * 1800)); // More staggered missile launches for easier gameplay
+      }, i * (currentLaunchDelay + Math.random() * currentLaunchDelay * 0.5)); // Dynamic launch timing based on level
     }
   };
   
