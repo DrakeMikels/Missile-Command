@@ -37,16 +37,26 @@ const FloatingStartMenu = () => {
       {/* Main Menu Container */}
       <div style={{
         background: 'transparent',
-        textAlign: 'center'
+        textAlign: 'center',
+        width: '100%',
+        maxWidth: '100vw',
+        padding: '0 20px',
+        boxSizing: 'border-box'
       }}>
         {/* PRESS START Title */}
         <div style={{
-          fontSize: 'clamp(2rem, 8vw, 4rem)',
+          fontSize: 'clamp(1.2rem, 6vw, 4rem)',
           fontWeight: 'bold',
           fontFamily: 'monospace',
-          letterSpacing: '8px',
+          letterSpacing: 'clamp(1px, 0.8vw, 8px)',
           marginBottom: '20px',
-          textTransform: 'uppercase'
+          textTransform: 'uppercase',
+          padding: '0 10px',
+          width: '100%',
+          boxSizing: 'border-box',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center'
         }}>
           <div style={{
             background: 'linear-gradient(90deg, #00ffff 0%, #ffffff 25%, #00ffff 50%, #ffffff 75%, #00ffff 100%)',
@@ -54,7 +64,10 @@ const FloatingStartMenu = () => {
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             textShadow: '0 0 20px #00ffff, 0 0 40px #00ffff',
-            animation: 'glow 2s ease-in-out infinite alternate'
+            animation: 'glow 2s ease-in-out infinite alternate',
+            textAlign: 'center',
+            lineHeight: '1.1',
+            maxWidth: '100%'
           }}>
             MISSILE COMMANDER
           </div>
