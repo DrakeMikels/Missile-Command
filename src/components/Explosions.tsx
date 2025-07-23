@@ -144,8 +144,8 @@ const CinematicExplosion = ({ explosion }: { explosion: Explosion }) => {
         const intensity = Math.max(0, (1 - progress) * 0.8);
         ray.scale.set(rayData.width, rayData.length * (1 + progress * 2), rayData.width);
         
-        if (ray.material instanceof THREE.Material) {
-          (ray.material as any).opacity = intensity * 0.3;
+        if ((ray as THREE.Mesh).material instanceof THREE.Material) {
+          ((ray as THREE.Mesh).material as any).opacity = intensity * 0.3;
         }
       });
     }

@@ -1,6 +1,5 @@
 import { Canvas } from '@react-three/fiber';
 import { useRef, Suspense } from 'react';
-import COLORS from '../theme/colors';
 import Scene from './Scene';
 import AdvancedBackground from './AdvancedBackground';
 import { AdvancedEffects } from './AdvancedEffects';

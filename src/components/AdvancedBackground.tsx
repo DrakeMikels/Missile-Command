@@ -1,7 +1,6 @@
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import COLORS from '../theme/colors';
 
 const RetroStarfield = () => {
   const starfieldRef = useRef<THREE.Points>(null);
@@ -81,18 +80,21 @@ const RetroStarfield = () => {
           count={starData.count}
           array={starData.positions}
           itemSize={3}
+          {...({} as any)}
         />
         <bufferAttribute
           attach="attributes-color"
           count={starData.count}
           array={starData.colors}
           itemSize={3}
+          {...({} as any)}
         />
         <bufferAttribute
           attach="attributes-size"
           count={starData.count}
           array={starData.sizes}
           itemSize={1}
+          {...({} as any)}
         />
       </bufferGeometry>
       <pointsMaterial
@@ -297,18 +299,21 @@ const FloatingParticles = () => {
           count={particleData.count}
           array={particleData.positions}
           itemSize={3}
+          {...({} as any)}
         />
         <bufferAttribute
           attach="attributes-color"
           count={particleData.count}
           array={particleData.colors}
           itemSize={3}
+          {...({} as any)}
         />
         <bufferAttribute
           attach="attributes-size"
           count={particleData.count}
           array={particleData.sizes}
           itemSize={1}
+          {...({} as any)}
         />
       </bufferGeometry>
       <pointsMaterial

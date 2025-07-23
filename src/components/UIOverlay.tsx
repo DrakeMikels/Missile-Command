@@ -5,8 +5,6 @@ const UIOverlay = () => {
 
   if (gameState === 'menu') return null;
 
-  const aliveCities = cities.filter(city => !city.destroyed).length;
-
   return (
     <div style={{
       position: 'fixed',

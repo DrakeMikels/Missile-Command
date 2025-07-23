@@ -76,7 +76,7 @@ export function AdvancedEffects() {
     }
   }, [composer, camera, scene]);
 
-  useFrame((state, delta) => {
+  useFrame((_, delta) => {
     try {
       gl.autoClear = true;
       composer.render(delta);
