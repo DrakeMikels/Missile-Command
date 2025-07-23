@@ -1,4 +1,5 @@
 import { useGameStore } from '../store/gameStore';
+import AdBanner from './AdBanner';
 
 const GameOverScreen = () => {
   const { gameState, score, level, startGame } = useGameStore();

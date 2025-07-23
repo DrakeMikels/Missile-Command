@@ -2,6 +2,7 @@ import React from 'react';
 import { useGameStore } from '../store/gameStore';
 import { initSounds, soundManager } from '../utils/soundManager';
 import HighScoreDisplay from './HighScoreDisplay';
+import AdBanner from './AdBanner';
 
 const FloatingStartMenu = () => {
   const { gameState, startGame, loadHighScores, subscribeToGlobalLeaderboard } = useGameStore();
@@ -130,6 +131,21 @@ const FloatingStartMenu = () => {
           justifyContent: 'center'
         }}>
           <HighScoreDisplay />
+        </div>
+
+        {/* Advertisement */}
+        <div style={{ marginTop: '30px', marginBottom: '20px' }}>
+          <AdBanner 
+            adSlot="0987654321" 
+            width={728}
+            height={90}
+            style={{
+              backgroundColor: 'rgba(0, 0, 0, 0.2)',
+              border: '1px solid rgba(0, 255, 255, 0.1)',
+              borderRadius: '5px',
+              padding: '10px'
+            }}
+          />
         </div>
 
         {/* Donation Button */}
