@@ -2,6 +2,7 @@ import GameCanvas from './components/GameCanvas';
 import UIOverlay from './components/UIOverlay';
 import FloatingStartMenu from './components/FloatingStartMenu';
 import GameOverScreen from './components/GameOverScreen';
+import LevelTransition from './components/LevelTransition';
 import './App.css';
 
 function App() {
@@ -27,6 +28,9 @@ function App() {
       
       {/* Game Over Screen - Overlay when needed */}
       <GameOverScreen />
+      
+      {/* Level Transition - Overlay for milestone levels */}
+      <LevelTransition />
       
       {/* Global Styles for Mobile Support */}
       <style>

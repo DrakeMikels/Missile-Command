@@ -167,7 +167,7 @@ const Interceptors = () => {
           x: interceptor.targetX,
           y: interceptor.targetY,
           radius: 0,
-          maxRadius: 1.76, // Reduced by 20% from 2.2 to 1.76
+          maxRadius: 1.41, // Reduced by 20% from 1.76 to 1.41 (total 36% reduction from original)
           startTime: currentTime,
           duration: 2500, // Longer duration for better visuals
           level: level // Add level for scoring bonuses

@@ -28,29 +28,17 @@ const GameManager = () => {
       
       // Wait a moment before next wave - longer delay for breathing room
       setTimeout(() => {
+        // Get current game state for calculations
+        const { level: currentLevel } = useGameStore.getState();
+        const maxLevel = 20;
+        const progressRatio = Math.min(currentLevel / maxLevel, 1);
+        
         nextLevel();
         
         // Play level complete sound with special effects for milestone levels
         soundManager.playLevelComplete();
         
-        // Special milestone notifications every 5 levels
-        if (level === 5) {
-          setTimeout(() => {
-            alert('🚀 LEVEL 5 REACHED! 🚀\nYou are showing skill, Commander!\nDifficulty is starting to increase!');
-          }, 1000);
-        } else if (level === 10) {
-          setTimeout(() => {
-            alert('⚡ LEVEL 10 REACHED! ⚡\nThe intensity is ramping up!\nMissiles are getting faster and more frequent!');
-          }, 1000);
-        } else if (level === 15) {
-          setTimeout(() => {
-            alert('🔥 LEVEL 15 REACHED! 🔥\nYou are in the danger zone!\nMissile splits are becoming deadly!');
-          }, 1000);
-        } else if (level === 20) {
-          setTimeout(() => {
-            alert('💀 FINAL LEVEL 20! 💀\nThis is it - the ultimate test!\nSurvive this wave to become the ultimate MISSILE COMMANDER!');
-          }, 1000);
-        }
+        // Level milestone notifications are now handled by LevelTransition component
         
         // Spawn power-ups more frequently at higher levels to help players
         const powerUpChance = 0.3 + (progressRatio * 0.4); // 30% to 70% chance
@@ -58,25 +46,15 @@ const GameManager = () => {
           spawnPowerUp();
         }
         
-        // Check for victory at level 20
-        if (level >= 20) {
-          setTimeout(() => {
-            // Victory message - player has beaten the game!
-            alert('🎉 CONGRATULATIONS! You are the ultimate MISSILE COMMANDER! 🎉\n\nYou have successfully defended through all 20 levels!\nFinal Score: ' + useGameStore.getState().score.toLocaleString());
-          }, 2000);
-        }
+        // Check for victory at level 20 - victory message handled by LevelTransition component
+        // Additional victory logic could be added here if needed
         
         // Dynamic wave timing - early levels much faster for immediate gratification
-        const { level } = useGameStore.getState();
-        const maxLevel = 20;
-        const progressRatio = Math.min(level / maxLevel, 1);
-        
-        // Much shorter delays for early levels
-        const baseWaveDelay = level <= 5 ? 2000 : 4000; // 2s for levels 1-5, then 4s
+        const baseWaveDelay = currentLevel <= 5 ? 2000 : 4000; // 2s for levels 1-5, then 4s
         const waveDelay = baseWaveDelay - (progressRatio * 1000); // Fast progression
         
         lastWaveTimeRef.current = currentTime + waveDelay;
-      }, level <= 5 ? 1500 : 3000 - (progressRatio * 1500)); // Much faster early level completion
+      }, level <= 5 ? 1500 : 3000 - (Math.min(level / 20, 1) * 1500)); // Much faster early level completion
       return;
     }
     
@@ -92,6 +70,9 @@ const GameManager = () => {
     const activeCities = cities.filter(city => !city.destroyed);
     if (activeCities.length === 0) return;
     
+    // Get current level from store
+    const { level: currentLevel } = useGameStore.getState();
+    
     // Random position above the battlefield
     const x = -8 + Math.random() * 16;
     const y = 2 + Math.random() * 4;
@@ -102,15 +83,15 @@ const GameManager = () => {
     
     // Better power-ups at higher levels
     const rand = Math.random();
-    const isHighLevel = level >= 15;
+    const isHighLevel = currentLevel >= 15;
     
-    if (rand < 0.5) {
-      type = 'scoreMultiplier';
-      if (isHighLevel) {
-        value = level >= 18 ? 5 : 4; // 4x-5x multiplier at very high levels
-      } else {
-        value = level > 8 ? 3 : 2; // 2x-3x multiplier at mid levels
-      }
+          if (rand < 0.5) {
+        type = 'scoreMultiplier';
+        if (isHighLevel) {
+          value = currentLevel >= 18 ? 5 : 4; // 4x-5x multiplier at very high levels
+        } else {
+          value = currentLevel > 8 ? 3 : 2; // 2x-3x multiplier at mid levels
+        }
     } else if (rand < 0.8) {
       type = 'shield';
       value = isHighLevel ? 8000 : 5000; // Longer shield duration at high levels
