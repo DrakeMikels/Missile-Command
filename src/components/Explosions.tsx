@@ -18,6 +18,44 @@ const CinematicExplosion = ({ explosion }: { explosion: Explosion }) => {
   useEffect(() => {
     soundManager.playExplosion();
   }, []);
+
+  // Create gradient textures for smoother explosion effects
+  const gradientTextures = useMemo(() => {
+    // Core gradient texture (white to orange)
+    const coreCanvas = document.createElement('canvas');
+    coreCanvas.width = 64;
+    coreCanvas.height = 64;
+    const coreCtx = coreCanvas.getContext('2d')!;
+    
+    const coreGradient = coreCtx.createRadialGradient(32, 32, 0, 32, 32, 32);
+    coreGradient.addColorStop(0, 'rgba(255, 255, 255, 0.7)'); // White center with transparency
+    coreGradient.addColorStop(0.3, 'rgba(255, 200, 100, 0.6)'); // Warm yellow with transparency
+    coreGradient.addColorStop(0.7, 'rgba(255, 100, 50, 0.4)'); // Orange with more transparency
+    coreGradient.addColorStop(1, 'rgba(255, 50, 0, 0)'); // Transparent red edge
+    
+    coreCtx.fillStyle = coreGradient;
+    coreCtx.fillRect(0, 0, 64, 64);
+    
+    // Shockwave gradient texture (cyan to transparent)
+    const shockCanvas = document.createElement('canvas');
+    shockCanvas.width = 64;
+    shockCanvas.height = 64;
+    const shockCtx = shockCanvas.getContext('2d')!;
+    
+    const shockGradient = shockCtx.createRadialGradient(32, 32, 20, 32, 32, 32);
+    shockGradient.addColorStop(0, 'rgba(0, 255, 255, 0)'); // Transparent center
+    shockGradient.addColorStop(0.5, 'rgba(0, 255, 255, 0.8)'); // Bright cyan
+    shockGradient.addColorStop(0.8, 'rgba(100, 255, 255, 0.6)'); // Light cyan
+    shockGradient.addColorStop(1, 'rgba(0, 255, 255, 0)'); // Transparent edge
+    
+    shockCtx.fillStyle = shockGradient;
+    shockCtx.fillRect(0, 0, 64, 64);
+
+    return {
+      coreTexture: new THREE.CanvasTexture(coreCanvas),
+      shockTexture: new THREE.CanvasTexture(shockCanvas)
+    };
+  }, []);
   
   // Generate advanced particle system
   const particles = useMemo(() => {
@@ -190,44 +228,40 @@ const CinematicExplosion = ({ explosion }: { explosion: Explosion }) => {
         ))}
       </group>
       
-      {/* Main explosion core with enhanced materials */}
+      {/* Main explosion core with smooth gradient */}
       <mesh ref={coreRef}>
-        <sphereGeometry args={[1, 24, 24]} />
-        <meshStandardMaterial 
-          color="#ffffff"
-          emissive="#ffffff"
-          emissiveIntensity={2.5}
+        <sphereGeometry args={[1, 32, 32]} />
+        <meshBasicMaterial 
+          map={gradientTextures.coreTexture}
           transparent
-          opacity={0.9}
-          roughness={0}
-          metalness={0}
+          opacity={0.95}
+          blending={THREE.AdditiveBlending}
+          depthWrite={false}
         />
       </mesh>
       
-      {/* Secondary explosion layer */}
+      {/* Secondary explosion layer with gradient fade */}
       <mesh ref={coreRef}>
-        <sphereGeometry args={[1.2, 20, 20]} />
-        <meshStandardMaterial 
+        <sphereGeometry args={[1.3, 24, 24]} />
+        <meshBasicMaterial 
           color={COLORS.burntSienna}
-          emissive={COLORS.burntSienna}
-          emissiveIntensity={1.8}
+          transparent
+          opacity={0.4}
+          blending={THREE.AdditiveBlending}
+          depthWrite={false}
+        />
+      </mesh>
+      
+      {/* Smooth gradient shockwave ring */}
+      <mesh ref={shockwaveRef}>
+        <ringGeometry args={[0.6, 1.4, 48]} />
+        <meshBasicMaterial 
+          map={gradientTextures.shockTexture}
           transparent
           opacity={0.7}
-          roughness={0.1}
-          metalness={0.1}
-        />
-      </mesh>
-      
-      {/* Cleaner single shockwave ring */}
-      <mesh ref={shockwaveRef}>
-        <ringGeometry args={[0.8, 1.2, 32]} />
-        <meshStandardMaterial 
-          color={COLORS.lightCyan}
-          emissive={COLORS.lightCyan}
-          emissiveIntensity={1.0}
-          transparent
-          opacity={0.5}
+          blending={THREE.AdditiveBlending}
           side={THREE.DoubleSide}
+          depthWrite={false}
         />
       </mesh>
       
