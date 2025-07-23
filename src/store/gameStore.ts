@@ -49,13 +49,24 @@ export interface PowerUp {
   collected: boolean;
 }
 
+export interface HighScore {
+  initials: string;
+  score: number;
+  level: number;
+  date: string;
+}
+
 interface GameState {
   // Game state
-  gameState: 'menu' | 'playing' | 'gameOver';
+  gameState: 'menu' | 'playing' | 'gameOver' | 'enterHighScore';
   score: number;
   level: number;
   lives: number;
   scoreMultiplier: number;
+  
+  // High scores
+  highScores: HighScore[];
+  isNewHighScore: boolean;
   
   // Game objects
   cities: City[];
@@ -70,6 +81,12 @@ interface GameState {
   addScore: (points: number) => void;
   nextLevel: () => void;
   setScoreMultiplier: (multiplier: number) => void;
+  
+  // High score actions
+  checkHighScore: () => boolean;
+  submitHighScore: (initials: string) => void;
+  getHighScores: () => HighScore[];
+  loadHighScores: () => void;
   
   // Object management
   addMissile: (missile: Omit<Missile, 'id'>) => void;
@@ -116,6 +133,8 @@ export const useGameStore = create<GameState>((set, get) => ({
   level: 1,
   lives: 3,
   scoreMultiplier: 1,
+  highScores: [],
+  isNewHighScore: false,
   cities: createInitialCities(),
   missiles: [],
   interceptors: [],
@@ -137,8 +156,21 @@ export const useGameStore = create<GameState>((set, get) => ({
   }),
   
   endGame: () => {
+    const state = get();
+    
+    // Ensure high scores are loaded before checking
+    state.loadHighScores();
+    
+    const currentScore = state.score;
+    const isHighScore = state.checkHighScore();
+    
     soundManager.playGameOver();
-    set({ gameState: 'gameOver' });
+    
+    if (isHighScore) {
+      set({ gameState: 'enterHighScore', isNewHighScore: true });
+    } else {
+      set({ gameState: 'gameOver', isNewHighScore: false });
+    }
   },
   
   addScore: (points: number) => set((state) => ({ 
@@ -242,5 +274,63 @@ export const useGameStore = create<GameState>((set, get) => ({
     expiredExplosions.forEach(explosion => {
       state.removeExplosion(explosion.id);
     });
+  },
+
+  // High score functions
+  loadHighScores: () => {
+    try {
+      const saved = localStorage.getItem('missileCommandHighScores');
+      if (saved) {
+        const highScores = JSON.parse(saved);
+        set({ highScores });
+      }
+    } catch (error) {
+      console.error('Error loading high scores:', error);
+    }
+  },
+
+  checkHighScore: () => {
+    const state = get();
+    const currentScore = state.score;
+    
+    // Always qualify if less than 3 scores exist
+    if (state.highScores.length < 3) {
+      return true;
+    }
+    
+    // Check if current score beats the 3rd place score
+    return currentScore > state.highScores[2].score;
+  },
+
+  submitHighScore: (initials: string) => {
+    const state = get();
+    const newHighScore: HighScore = {
+      initials: initials.toUpperCase().slice(0, 3),
+      score: state.score,
+      level: state.level,
+      date: new Date().toLocaleDateString()
+    };
+
+    // Add new score and sort
+    const updatedHighScores = [...state.highScores, newHighScore]
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 3); // Keep only top 3
+
+    // Save to localStorage
+    try {
+      localStorage.setItem('missileCommandHighScores', JSON.stringify(updatedHighScores));
+    } catch (error) {
+      console.error('Error saving high scores:', error);
+    }
+
+    set({ 
+      highScores: updatedHighScores,
+      gameState: 'gameOver',
+      isNewHighScore: false
+    });
+  },
+
+  getHighScores: () => {
+    return get().highScores;
   }
 })); 

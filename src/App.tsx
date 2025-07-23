@@ -3,6 +3,7 @@ import UIOverlay from './components/UIOverlay';
 import FloatingStartMenu from './components/FloatingStartMenu';
 import GameOverScreen from './components/GameOverScreen';
 import LevelTransition from './components/LevelTransition';
+import HighScoreEntry from './components/HighScoreEntry';
 import './App.css';
 
 function App() {
@@ -31,6 +32,9 @@ function App() {
       
       {/* Level Transition - Overlay for milestone levels */}
       <LevelTransition />
+      
+      {/* High Score Entry - Overlay when new high score achieved */}
+      <HighScoreEntry />
       
       {/* Global Styles for Mobile Support */}
       <style>

@@ -1,8 +1,15 @@
+import React from 'react';
 import { useGameStore } from '../store/gameStore';
 import { initSounds, soundManager } from '../utils/soundManager';
+import HighScoreDisplay from './HighScoreDisplay';
 
 const FloatingStartMenu = () => {
-  const { gameState, startGame } = useGameStore();
+  const { gameState, startGame, loadHighScores } = useGameStore();
+
+  // Load high scores when component mounts
+  React.useEffect(() => {
+    loadHighScores();
+  }, [loadHighScores]);
 
   if (gameState !== 'menu') return null;
 
@@ -111,6 +118,15 @@ const FloatingStartMenu = () => {
         >
           START GAME
         </button>
+
+        {/* High Score Display */}
+        <div style={{ 
+          marginTop: '40px',
+          display: 'flex',
+          justifyContent: 'center'
+        }}>
+          <HighScoreDisplay />
+        </div>
 
         {/* Donation Button */}
         <div style={{ marginTop: '30px' }}>
