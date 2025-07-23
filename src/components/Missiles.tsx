@@ -3,6 +3,7 @@ import { useGameStore, type Missile } from '../store/gameStore';
 import { useRef, useMemo } from 'react';
 import * as THREE from 'three';
 import COLORS from '../theme/colors';
+import { soundManager } from '../utils/soundManager';
 
 const RealisticMissile = ({ missile }: { missile: Missile }) => {
   const missileGroupRef = useRef<THREE.Group>(null);
@@ -290,7 +291,7 @@ const Missiles = () => {
           x: missile.targetX,
           y: missile.targetY,
           radius: 0,
-          maxRadius: 1.2,
+          maxRadius: 0.96, // Reduced by 20% from 1.2 to 0.96
           startTime: currentTime,
           duration: 2500
         });
@@ -304,6 +305,8 @@ const Missiles = () => {
         
         if (hitCity) {
           destroyCity(hitCity.id);
+          // Play city destruction sound
+          soundManager.playCityDestroy();
         }
         
         removeMissile(missile.id);

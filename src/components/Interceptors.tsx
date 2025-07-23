@@ -143,7 +143,8 @@ const Interceptors = () => {
   const { 
     interceptors, 
     removeInterceptor, 
-    addExplosion 
+    addExplosion,
+    level
   } = useGameStore();
   
   useFrame(() => {
@@ -166,9 +167,10 @@ const Interceptors = () => {
           x: interceptor.targetX,
           y: interceptor.targetY,
           radius: 0,
-          maxRadius: 2.2, // Slightly larger for better gameplay
+          maxRadius: 1.76, // Reduced by 20% from 2.2 to 1.76
           startTime: currentTime,
-          duration: 2500 // Longer duration for better visuals
+          duration: 2500, // Longer duration for better visuals
+          level: level // Add level for scoring bonuses
         });
         
         // Mark as exploded and remove

@@ -1,6 +1,7 @@
 import { useFrame } from '@react-three/fiber';
 import { useGameStore } from '../store/gameStore';
 import { useRef } from 'react';
+import { soundManager } from '../utils/soundManager';
 
 const GameManager = () => {
   const { 
@@ -9,7 +10,8 @@ const GameManager = () => {
     missiles, 
     cities,
     addMissile, 
-    nextLevel 
+    nextLevel,
+    addPowerUp 
   } = useGameStore();
   
   const lastWaveTimeRef = useRef<number>(0);
@@ -24,11 +26,20 @@ const GameManager = () => {
     if (missiles.length === 0 && waveInProgressRef.current) {
       waveInProgressRef.current = false;
       
-      // Wait a moment before next wave
+      // Wait a moment before next wave - longer delay for breathing room
       setTimeout(() => {
         nextLevel();
-        lastWaveTimeRef.current = currentTime + 3000; // 3 second delay
-      }, 2000);
+        
+        // Play level complete sound
+        soundManager.playLevelComplete();
+        
+        // Spawn power-ups more often to help players (40% chance per level)
+        if (Math.random() < 0.4) {
+          spawnPowerUp();
+        }
+        
+        lastWaveTimeRef.current = currentTime + 4000; // Increased to 4 second delay
+      }, 3000); // Increased from 2 to 3 seconds
       return;
     }
     
@@ -40,15 +51,49 @@ const GameManager = () => {
     }
   });
   
+  const spawnPowerUp = () => {
+    const activeCities = cities.filter(city => !city.destroyed);
+    if (activeCities.length === 0) return;
+    
+    // Random position above the battlefield
+    const x = -8 + Math.random() * 16;
+    const y = 2 + Math.random() * 4;
+    
+    // Power-up type based on level and random chance
+    let type: 'scoreMultiplier' | 'shield' | 'rapidFire';
+    let value: number;
+    
+    const rand = Math.random();
+    if (rand < 0.6) {
+      type = 'scoreMultiplier';
+      value = level > 5 ? 3 : 2; // Higher multiplier at higher levels
+    } else if (rand < 0.8) {
+      type = 'shield';
+      value = 5000; // Shield duration in ms
+    } else {
+      type = 'rapidFire';
+      value = 3000; // Rapid fire duration in ms
+    }
+    
+    addPowerUp({
+      x,
+      y,
+      type,
+      value,
+      startTime: Date.now(),
+      collected: false
+    });
+  };
+
   const startWave = () => {
     const activeCities = cities.filter(city => !city.destroyed);
     if (activeCities.length === 0) return;
     
-    // Difficulty scaling
-    const baseSpeed = 2;
-    const speedIncrease = Math.min(level * 0.3, 3); // Cap speed increase
-    const missileCount = Math.min(3 + level, 12); // Cap missile count
-    const splitChance = Math.min(level * 0.1, 0.4); // Cap split chance at 40%
+    // Difficulty scaling - gentler progression to keep players engaged longer
+    const baseSpeed = 1.1; // Slightly slower base speed
+    const speedIncrease = Math.min(level * 0.15, 1.8); // More gradual speed increase
+    const missileCount = Math.min(2 + Math.floor(level * 1.2), 12); // Gentler missile count increase
+    const splitChance = Math.min(level * 0.08, 0.4); // Slower split chance progression
     
     for (let i = 0; i < missileCount; i++) {
       // Random delay for each missile
@@ -71,6 +116,9 @@ const GameManager = () => {
           startTime: Date.now()
         });
         
+        // Play missile launch sound
+        soundManager.playMissileLaunch();
+        
         // Random missile splitting for higher levels
         if (Math.random() < splitChance && level > 3) {
           setTimeout(() => {
@@ -83,9 +131,12 @@ const GameManager = () => {
               speed: baseSpeed + speedIncrease * 0.8,
               startTime: Date.now()
             });
+            
+            // Play split missile sound (higher pitch)
+            soundManager.playMissileLaunch(0.5, 1.2);
           }, 1000 + Math.random() * 2000);
         }
-      }, i * (1000 + Math.random() * 1500)); // Stagger missile launches
+      }, i * (1200 + Math.random() * 1800)); // More staggered missile launches for easier gameplay
     }
   };
   

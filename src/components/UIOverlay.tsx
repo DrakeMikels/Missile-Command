@@ -1,7 +1,7 @@
 import { useGameStore } from '../store/gameStore';
 
 const UIOverlay = () => {
-  const { gameState, score, level, lives, cities } = useGameStore();
+  const { gameState, score, level, lives, cities, scoreMultiplier } = useGameStore();
 
   if (gameState === 'menu') return null;
 
@@ -33,7 +33,9 @@ const UIOverlay = () => {
         color: '#00ffff',
         textShadow: '0 0 10px #00ffff'
       }}>
-        <div style={{ fontSize: 'clamp(10px, 2vw, 14px)', opacity: 0.8 }}>SCORE</div>
+        <div style={{ fontSize: 'clamp(10px, 2vw, 14px)', opacity: 0.8 }}>
+          SCORE {scoreMultiplier > 1 && <span style={{ color: '#ffff00' }}>×{scoreMultiplier}</span>}
+        </div>
         <div style={{ fontSize: 'clamp(16px, 3.5vw, 24px)', letterSpacing: '2px' }}>
           {score.toLocaleString().padStart(8, '0')}
         </div>

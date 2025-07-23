@@ -1,8 +1,9 @@
 import { useFrame } from '@react-three/fiber';
 import { useGameStore, type Explosion } from '../store/gameStore';
-import { useRef, useMemo } from 'react';
+import { useRef, useMemo, useEffect } from 'react';
 import * as THREE from 'three';
 import COLORS from '../theme/colors';
+import { soundManager } from '../utils/soundManager';
 
 const CinematicExplosion = ({ explosion }: { explosion: Explosion }) => {
   const explosionGroupRef = useRef<THREE.Group>(null);
@@ -12,6 +13,11 @@ const CinematicExplosion = ({ explosion }: { explosion: Explosion }) => {
   const smokeRef = useRef<THREE.Group>(null);
   const glowRef = useRef<THREE.Mesh>(null);
   const volumetricRef = useRef<THREE.Group>(null);
+  
+  // Play explosion sound when created
+  useEffect(() => {
+    soundManager.playExplosion();
+  }, []);
   
   // Generate advanced particle system
   const particles = useMemo(() => {
@@ -212,27 +218,15 @@ const CinematicExplosion = ({ explosion }: { explosion: Explosion }) => {
         />
       </mesh>
       
-      {/* Enhanced shockwave with multiple rings */}
+      {/* Cleaner single shockwave ring */}
       <mesh ref={shockwaveRef}>
-        <ringGeometry args={[0.9, 1.4, 24]} />
+        <ringGeometry args={[0.8, 1.2, 32]} />
         <meshStandardMaterial 
           color={COLORS.lightCyan}
           emissive={COLORS.lightCyan}
-          emissiveIntensity={1.2}
+          emissiveIntensity={1.0}
           transparent
-          opacity={0.4}
-          side={THREE.DoubleSide}
-        />
-      </mesh>
-      
-      <mesh ref={shockwaveRef}>
-        <ringGeometry args={[1.3, 1.8, 24]} />
-        <meshStandardMaterial 
-          color={COLORS.persianGreen}
-          emissive={COLORS.persianGreen}
-          emissiveIntensity={0.8}
-          transparent
-          opacity={0.2}
+          opacity={0.5}
           side={THREE.DoubleSide}
         />
       </mesh>
@@ -316,16 +310,20 @@ const Explosions = () => {
       const progress = Math.min(elapsed / explosion.duration, 1);
       const currentRadius = explosion.maxRadius * progress;
       
-      // Check collision with missiles using improved detection
+      // Check collision with missiles using improved detection - more sensitive
       missiles.forEach(missile => {
         const distance = Math.sqrt(
           Math.pow(missile.x - explosion.x, 2) + 
           Math.pow(missile.y - explosion.y, 2)
         );
         
-        if (distance <= currentRadius) {
+        // Increased sensitivity: missiles destroyed at 1.3x the explosion radius
+        if (distance <= currentRadius * 1.3) {
           removeMissile(missile.id);
-          addScore(100);
+          // Amplified scoring with level bonuses
+          const baseScore = 500; // Increased from 100 to 500
+          const levelBonus = explosion.level ? explosion.level * 50 : 0;
+          addScore(baseScore + levelBonus);
         }
       });
     });

@@ -9,17 +9,29 @@ const RealisticBuilding = ({ x, destroyed, index }: { x: number; destroyed: bool
   
   // Responsive building scaling based on viewport
   const responsiveScale = useMemo(() => {
-    // Scale buildings based on viewport width
-    const baseScale = Math.min(viewport.width / 16, 1.2); // Responsive scaling
-    return Math.max(baseScale, 0.6); // Minimum scale to ensure visibility
-  }, [viewport.width]);
+    // Different scaling for desktop vs mobile
+    const aspectRatio = viewport.width / viewport.height;
+    
+    if (aspectRatio > 1.5) {
+      // Desktop/landscape: smaller buildings relative to screen height
+      const baseScale = Math.min(viewport.height / 12, 0.8); // Scale based on height for desktop
+      return Math.max(baseScale, 0.5);
+    } else {
+      // Mobile/portrait: scale based on width as before
+      const baseScale = Math.min(viewport.width / 16, 1.2);
+      return Math.max(baseScale, 0.6);
+    }
+  }, [viewport.width, viewport.height]);
   
   // Properly scaled building properties
   const buildingProps = useMemo(() => {
     const seed = index * 2.618;
     
     // Building dimensions scaled for responsiveness
-    const baseHeight = 2 + (Math.sin(seed) * 0.5 + 0.5) * 3; // Slightly shorter for bottom positioning
+    const aspectRatio = viewport.width / viewport.height;
+    const heightMultiplier = aspectRatio > 1.5 ? 2.5 : 3; // Shorter on desktop
+    
+    const baseHeight = 1.5 + (Math.sin(seed) * 0.5 + 0.5) * heightMultiplier; // Adjusted base height
     const baseWidth = 0.5 + (Math.cos(seed * 1.3) * 0.5 + 0.5) * 0.6;
     const baseDepth = 0.4 + (Math.sin(seed * 1.7) * 0.5 + 0.5) * 0.5;
     

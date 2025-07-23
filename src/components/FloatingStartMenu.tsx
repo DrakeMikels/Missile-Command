@@ -1,4 +1,5 @@
 import { useGameStore } from '../store/gameStore';
+import { initSounds } from '../utils/soundManager';
 
 const FloatingStartMenu = () => {
   const { gameState, startGame } = useGameStore();
@@ -43,7 +44,7 @@ const FloatingStartMenu = () => {
             textShadow: '0 0 20px #00ffff, 0 0 40px #00ffff',
             animation: 'glow 2s ease-in-out infinite alternate'
           }}>
-            MISSILE COMMAND
+            MISSILE COMMANDER
           </div>
         </div>
         
@@ -62,7 +63,10 @@ const FloatingStartMenu = () => {
         
         {/* Start Button */}
         <button
-          onClick={startGame}
+          onClick={async () => {
+            await initSounds(); // Initialize sounds on first interaction
+            startGame();
+          }}
           style={{
             background: 'linear-gradient(45deg, #ff0088, #aa0066)',
             border: '2px solid #ff00ff',

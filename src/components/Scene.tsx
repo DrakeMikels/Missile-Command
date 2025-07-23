@@ -2,10 +2,12 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { useGameStore } from '../store/gameStore';
 import { useRef, useCallback } from 'react';
 import * as THREE from 'three';
+import { soundManager } from '../utils/soundManager';
 import Cities from './Cities';
 import Missiles from './Missiles';
 import Interceptors from './Interceptors';
 import Explosions from './Explosions';
+import PowerUps from './PowerUps';
 import GameManager from './GameManager';
 
 const Scene = () => {
@@ -47,6 +49,9 @@ const Scene = () => {
       startTime: Date.now(),
       exploded: false
     });
+    
+    // Play interceptor launch sound
+    soundManager.playInterceptor();
   }, [gameState, addInterceptor, camera, gl]);
 
   // Game loop
@@ -76,6 +81,7 @@ const Scene = () => {
       <Missiles />
       <Interceptors />
       <Explosions />
+      <PowerUps />
       
       {/* Game management */}
       <GameManager />

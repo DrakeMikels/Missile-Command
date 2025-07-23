@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { soundManager } from '../utils/soundManager';
 
 export interface City {
   id: string;
@@ -35,6 +36,17 @@ export interface Explosion {
   maxRadius: number;
   startTime: number;
   duration: number;
+  level?: number;
+}
+
+export interface PowerUp {
+  id: string;
+  x: number;
+  y: number;
+  type: 'scoreMultiplier' | 'shield' | 'rapidFire';
+  value: number;
+  startTime: number;
+  collected: boolean;
 }
 
 interface GameState {
@@ -43,18 +55,21 @@ interface GameState {
   score: number;
   level: number;
   lives: number;
+  scoreMultiplier: number;
   
   // Game objects
   cities: City[];
   missiles: Missile[];
   interceptors: Interceptor[];
   explosions: Explosion[];
+  powerUps: PowerUp[];
   
   // Actions
   startGame: () => void;
   endGame: () => void;
   addScore: (points: number) => void;
   nextLevel: () => void;
+  setScoreMultiplier: (multiplier: number) => void;
   
   // Object management
   addMissile: (missile: Omit<Missile, 'id'>) => void;
@@ -64,6 +79,9 @@ interface GameState {
   addExplosion: (explosion: Omit<Explosion, 'id'>) => void;
   removeExplosion: (id: string) => void;
   destroyCity: (id: string) => void;
+  addPowerUp: (powerUp: Omit<PowerUp, 'id'>) => void;
+  removePowerUp: (id: string) => void;
+  collectPowerUp: (id: string) => void;
   
   // Game loop
   updateGame: (deltaTime: number) => void;
@@ -97,10 +115,12 @@ export const useGameStore = create<GameState>((set, get) => ({
   score: 0,
   level: 1,
   lives: 3,
+  scoreMultiplier: 1,
   cities: createInitialCities(),
   missiles: [],
   interceptors: [],
   explosions: [],
+  powerUps: [],
   
   // Actions
   startGame: () => set({ 
@@ -108,23 +128,31 @@ export const useGameStore = create<GameState>((set, get) => ({
     score: 0, 
     level: 1, 
     lives: 3,
+    scoreMultiplier: 1,
     cities: createInitialCities(),
     missiles: [],
     interceptors: [],
-    explosions: []
+    explosions: [],
+    powerUps: []
   }),
   
-  endGame: () => set({ gameState: 'gameOver' }),
+  endGame: () => {
+    soundManager.playGameOver();
+    set({ gameState: 'gameOver' });
+  },
   
   addScore: (points: number) => set((state) => ({ 
-    score: state.score + points 
+    score: state.score + Math.floor(points * state.scoreMultiplier)
   })),
+  
+  setScoreMultiplier: (multiplier: number) => set({ scoreMultiplier: multiplier }),
   
   nextLevel: () => set((state) => ({ 
     level: state.level + 1,
     missiles: [],
     interceptors: [],
-    explosions: []
+    explosions: [],
+    powerUps: []
   })),
   
   // Object management
@@ -157,6 +185,42 @@ export const useGameStore = create<GameState>((set, get) => ({
       city.id === id ? { ...city, destroyed: true } : city
     )
   })),
+  
+  addPowerUp: (powerUp) => set((state) => ({
+    powerUps: [...state.powerUps, { ...powerUp, id: `powerup-${Date.now()}-${Math.random()}` }]
+  })),
+  
+  removePowerUp: (id) => set((state) => ({
+    powerUps: state.powerUps.filter(p => p.id !== id)
+  })),
+  
+  collectPowerUp: (id) => set((state) => {
+    const powerUp = state.powerUps.find(p => p.id === id);
+    if (!powerUp) return state;
+    
+    let newMultiplier = state.scoreMultiplier;
+    
+    switch (powerUp.type) {
+      case 'scoreMultiplier':
+        newMultiplier = Math.min(state.scoreMultiplier + powerUp.value, 10); // Cap at 10x
+        // Reset multiplier after 15 seconds
+        setTimeout(() => {
+          set((currentState) => ({ scoreMultiplier: Math.max(currentState.scoreMultiplier - powerUp.value, 1) }));
+        }, 15000);
+        break;
+      case 'shield':
+        // TODO: Implement shield logic
+        break;
+      case 'rapidFire':
+        // TODO: Implement rapid fire logic
+        break;
+    }
+    
+    return {
+      powerUps: state.powerUps.map(p => p.id === id ? { ...p, collected: true } : p),
+      scoreMultiplier: newMultiplier
+    };
+  }),
   
   // Game loop
   updateGame: (_deltaTime: number) => {
