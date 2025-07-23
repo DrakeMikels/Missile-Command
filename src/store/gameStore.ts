@@ -161,7 +161,6 @@ export const useGameStore = create<GameState>((set, get) => ({
     // Ensure high scores are loaded before checking
     state.loadHighScores();
     
-    const currentScore = state.score;
     const isHighScore = state.checkHighScore();
     
     soundManager.playGameOver();
