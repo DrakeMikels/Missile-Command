@@ -228,15 +228,17 @@ const CinematicExplosion = ({ explosion }: { explosion: Explosion }) => {
         ))}
       </group>
       
-      {/* Main explosion core with smooth gradient */}
+      {/* Main explosion core - smaller and more jagged */}
       <mesh ref={coreRef}>
-        <sphereGeometry args={[1, 32, 32]} />
-        <meshBasicMaterial 
-          map={gradientTextures.coreTexture}
+        <sphereGeometry args={[0.6, 8, 6]} />
+        <meshStandardMaterial 
+          color={COLORS.saffron}
+          emissive={COLORS.saffron}
+          emissiveIntensity={1.5}
           transparent
-          opacity={0.95}
-          blending={THREE.AdditiveBlending}
-          depthWrite={false}
+          opacity={0.8}
+          roughness={0.3}
+          metalness={0.1}
         />
       </mesh>
       
