@@ -124,8 +124,23 @@ const GameOverScreen = () => {
           {score > 50000 ? 'NEW HIGH SCORE!' : 'TRY FOR A HIGHER SCORE!'}
         </div>
 
+        {/* Advertisement */}
+        <div style={{ marginTop: '30px', marginBottom: '20px' }}>
+          <AdBanner 
+            adSlot="1234567890" 
+            width={320}
+            height={100}
+            style={{
+              backgroundColor: 'rgba(0, 0, 0, 0.3)',
+              border: '1px solid rgba(0, 255, 255, 0.2)',
+              borderRadius: '5px',
+              padding: '10px'
+            }}
+          />
+        </div>
+
         {/* Subtle Donation Link */}
-        <div style={{ marginTop: '25px' }}>
+        <div style={{ marginTop: '15px' }}>
           <a
             href="https://venmo.com/u/Mike-Drake-1"
             target="_blank"
