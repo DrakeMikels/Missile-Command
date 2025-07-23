@@ -4,12 +4,16 @@ import { initSounds, soundManager } from '../utils/soundManager';
 import HighScoreDisplay from './HighScoreDisplay';
 
 const FloatingStartMenu = () => {
-  const { gameState, startGame, loadHighScores } = useGameStore();
+  const { gameState, startGame, loadHighScores, subscribeToGlobalLeaderboard } = useGameStore();
 
-  // Load high scores when component mounts
+  // Load high scores and subscribe to real-time updates when component mounts
   React.useEffect(() => {
+    // Load initial high scores
     loadHighScores();
-  }, [loadHighScores]);
+    
+    // Subscribe to real-time global leaderboard updates
+    subscribeToGlobalLeaderboard();
+  }, [loadHighScores, subscribeToGlobalLeaderboard]);
 
   if (gameState !== 'menu') return null;
 

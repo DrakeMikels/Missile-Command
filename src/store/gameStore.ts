@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { soundManager } from '../utils/soundManager';
+import { leaderboardService } from '../utils/leaderboardService';
 
 export interface City {
   id: string;
@@ -83,10 +84,11 @@ interface GameState {
   setScoreMultiplier: (multiplier: number) => void;
   
   // High score actions
-  checkHighScore: () => boolean;
-  submitHighScore: (initials: string) => void;
+  checkHighScore: () => Promise<boolean>;
+  submitHighScore: (initials: string) => Promise<void>;
   getHighScores: () => HighScore[];
-  loadHighScores: () => void;
+  loadHighScores: () => Promise<void>;
+  subscribeToGlobalLeaderboard: () => void;
   
   // Object management
   addMissile: (missile: Omit<Missile, 'id'>) => void;
@@ -155,19 +157,23 @@ export const useGameStore = create<GameState>((set, get) => ({
     powerUps: []
   }),
   
-  endGame: () => {
+  endGame: async () => {
     const state = get();
-    
-    // Ensure high scores are loaded before checking
-    state.loadHighScores();
-    
-    const isHighScore = state.checkHighScore();
     
     soundManager.playGameOver();
     
-    if (isHighScore) {
-      set({ gameState: 'enterHighScore', isNewHighScore: true });
-    } else {
+    try {
+      // Check if score qualifies for global leaderboard
+      const isHighScore = await state.checkHighScore();
+      
+      if (isHighScore) {
+        set({ gameState: 'enterHighScore', isNewHighScore: true });
+      } else {
+        set({ gameState: 'gameOver', isNewHighScore: false });
+      }
+    } catch (error) {
+      console.error('Error checking high score:', error);
+      // Fallback to game over if there's an error
       set({ gameState: 'gameOver', isNewHighScore: false });
     }
   },
@@ -276,57 +282,94 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   // High score functions
-  loadHighScores: () => {
+  loadHighScores: async () => {
     try {
-      const saved = localStorage.getItem('missileCommandHighScores');
-      if (saved) {
-        const highScores = JSON.parse(saved);
-        set({ highScores });
-      }
+      const globalScores = await leaderboardService.getTopScores(10);
+      const localFormat = leaderboardService.convertToLocalFormat(globalScores);
+      set({ highScores: localFormat });
     } catch (error) {
-      console.error('Error loading high scores:', error);
+      console.error('Error loading global high scores:', error);
+      // Fallback to localStorage
+      try {
+        const saved = localStorage.getItem('missileCommandHighScores');
+        if (saved) {
+          const highScores = JSON.parse(saved);
+          set({ highScores });
+        }
+      } catch (localError) {
+        console.error('Error loading local high scores:', localError);
+      }
     }
   },
 
-  checkHighScore: () => {
+  checkHighScore: async () => {
     const state = get();
     const currentScore = state.score;
     
-    // Always qualify if less than 3 scores exist
-    if (state.highScores.length < 3) {
-      return true;
+    try {
+      return await leaderboardService.checkGlobalHighScore(currentScore);
+    } catch (error) {
+      console.error('Error checking global high score:', error);
+             // Fallback to local check
+       return state.highScores.length < 10 || currentScore > state.highScores[9]?.score;
     }
-    
-    // Check if current score beats the 3rd place score
-    return currentScore > state.highScores[2].score;
   },
 
-  submitHighScore: (initials: string) => {
+  submitHighScore: async (initials: string) => {
     const state = get();
-    const newHighScore: HighScore = {
+    const scoreData = {
       initials: initials.toUpperCase().slice(0, 3),
       score: state.score,
-      level: state.level,
-      date: new Date().toLocaleDateString()
+      level: state.level
     };
 
-    // Add new score and sort
-    const updatedHighScores = [...state.highScores, newHighScore]
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 3); // Keep only top 3
-
-    // Save to localStorage
     try {
-      localStorage.setItem('missileCommandHighScores', JSON.stringify(updatedHighScores));
+      // Submit to global leaderboard
+      await leaderboardService.submitScore(scoreData);
+      
+      // Refresh local high scores from global leaderboard
+      await state.loadHighScores();
+      
+      set({ 
+        gameState: 'gameOver',
+        isNewHighScore: false
+      });
     } catch (error) {
-      console.error('Error saving high scores:', error);
-    }
+      console.error('Error submitting to global leaderboard:', error);
+      
+      // Fallback to local storage
+      const newHighScore: HighScore = {
+        ...scoreData,
+        date: new Date().toLocaleDateString()
+      };
 
-    set({ 
-      highScores: updatedHighScores,
-      gameState: 'gameOver',
-      isNewHighScore: false
-    });
+      const updatedHighScores = [...state.highScores, newHighScore]
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 10);
+
+      try {
+        localStorage.setItem('missileCommandHighScores', JSON.stringify(updatedHighScores));
+      } catch (localError) {
+        console.error('Error saving to localStorage:', localError);
+      }
+
+      set({ 
+        highScores: updatedHighScores,
+        gameState: 'gameOver',
+        isNewHighScore: false
+      });
+    }
+  },
+
+  subscribeToGlobalLeaderboard: () => {
+    try {
+      leaderboardService.subscribeToLeaderboard((globalScores) => {
+        const localFormat = leaderboardService.convertToLocalFormat(globalScores);
+        set({ highScores: localFormat });
+      });
+    } catch (error) {
+      console.error('Error subscribing to global leaderboard:', error);
+    }
   },
 
   getHighScores: () => {

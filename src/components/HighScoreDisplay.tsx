@@ -6,7 +6,16 @@ const HighScoreDisplay: React.FC = () => {
   const { highScores, loadHighScores } = useGameStore();
 
   useEffect(() => {
-    loadHighScores();
+    // Load high scores asynchronously
+    const loadScores = async () => {
+      try {
+        await loadHighScores();
+      } catch (error) {
+        console.error('Failed to load high scores:', error);
+      }
+    };
+    
+    loadScores();
   }, [loadHighScores]);
 
   return (
@@ -17,8 +26,8 @@ const HighScoreDisplay: React.FC = () => {
       borderRadius: '10px',
       boxShadow: `0 0 20px ${COLORS.persianGreen}40`,
       backdropFilter: 'blur(10px)',
-      maxWidth: '90vw',
-      width: 'clamp(300px, 40vw, 400px)',
+      maxWidth: '95vw',
+      width: 'clamp(320px, 50vw, 500px)',
       fontFamily: 'monospace',
       color: COLORS.lightCyan
     }}>
@@ -31,11 +40,15 @@ const HighScoreDisplay: React.FC = () => {
         textAlign: 'center',
         letterSpacing: '2px'
       }}>
-        🏆 HIGH SCORES 🏆
+        🌍 GLOBAL TOP 10 🌍
       </h2>
 
       {/* High Scores List */}
-      <div style={{ minHeight: '200px' }}>
+      <div style={{ 
+        minHeight: '300px',
+        maxHeight: '60vh',
+        overflowY: 'auto'
+      }}>
         {highScores.length === 0 ? (
           <div style={{
             textAlign: 'center',
@@ -44,77 +57,95 @@ const HighScoreDisplay: React.FC = () => {
             opacity: 0.7,
             padding: '3rem 0'
           }}>
-            NO HIGH SCORES YET<br />
-            BE THE FIRST!
+            NO SCORES YET<br />
+            BE THE FIRST CHAMPION!
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {/* Table Header */}
             <div style={{
               display: 'grid',
-              gridTemplateColumns: '60px 1fr 80px 80px',
-              gap: '10px',
-              fontSize: 'clamp(0.8rem, 2vw, 1rem)',
+              gridTemplateColumns: '50px 1fr 70px 60px',
+              gap: '8px',
+              fontSize: 'clamp(0.7rem, 1.8vw, 0.9rem)',
               color: COLORS.persianGreen,
               fontWeight: 'bold',
               paddingBottom: '0.5rem',
-              borderBottom: `1px solid ${COLORS.persianGreen}40`
+              borderBottom: `1px solid ${COLORS.persianGreen}40`,
+              position: 'sticky',
+              top: 0,
+              backgroundColor: 'rgba(0, 30, 60, 0.95)',
+              zIndex: 1
             }}>
               <div>RANK</div>
               <div>NAME</div>
               <div>SCORE</div>
-              <div>LEVEL</div>
+              <div>LVL</div>
             </div>
 
             {/* Score Entries */}
-            {Array.from({ length: 3 }, (_, index) => {
+            {Array.from({ length: 10 }, (_, index) => {
               const score = highScores[index];
-              const rankEmojis = ['🥇', '🥈', '🥉'];
-              const rankColors = [COLORS.saffron, '#C0C0C0', '#CD7F32'];
+              const rankEmojis = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
+              const getRankColor = (rank: number) => {
+                if (rank === 0) return COLORS.saffron; // Gold
+                if (rank === 1) return '#C0C0C0'; // Silver  
+                if (rank === 2) return '#CD7F32'; // Bronze
+                return COLORS.lightCyan; // Regular cyan for 4-10
+              };
               
               return (
                 <div
                   key={index}
                   style={{
                     display: 'grid',
-                    gridTemplateColumns: '60px 1fr 80px 80px',
-                    gap: '10px',
-                    fontSize: 'clamp(0.9rem, 2.2vw, 1.1rem)',
-                    padding: '0.5rem 0',
-                    backgroundColor: score ? 'rgba(255, 255, 255, 0.05)' : 'transparent',
-                    borderRadius: '5px',
-                    color: score ? COLORS.lightCyan : '#666'
+                    gridTemplateColumns: '50px 1fr 70px 60px',
+                    gap: '8px',
+                    fontSize: 'clamp(0.8rem, 2vw, 1rem)',
+                    padding: '0.4rem 0',
+                    backgroundColor: score ? 'rgba(255, 255, 255, 0.03)' : 'transparent',
+                    borderRadius: '3px',
+                    color: score ? COLORS.lightCyan : '#444',
+                    borderLeft: score && index < 3 ? `3px solid ${getRankColor(index)}` : 'none',
+                    paddingLeft: score && index < 3 ? '0.5rem' : '0'
                   }}
                 >
                   <div style={{
-                    color: rankColors[index],
-                    fontWeight: 'bold',
+                    color: getRankColor(index),
+                    fontWeight: index < 3 ? 'bold' : 'normal',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '5px'
+                    fontSize: 'clamp(0.7rem, 1.8vw, 0.9rem)'
                   }}>
-                    {rankEmojis[index]} {index + 1}
+                    {score ? rankEmojis[index] : `${index + 1}.`}
                   </div>
                   
                   <div style={{
-                    fontWeight: 'bold',
-                    color: score ? COLORS.saffron : '#666',
-                    letterSpacing: '2px'
+                    fontWeight: index < 3 ? 'bold' : 'normal',
+                    color: score ? (index < 3 ? COLORS.saffron : COLORS.lightCyan) : '#444',
+                    letterSpacing: '1px',
+                    fontSize: 'clamp(0.8rem, 2vw, 1rem)'
                   }}>
                     {score ? score.initials : '---'}
                   </div>
                   
                   <div style={{
-                    fontWeight: 'bold',
-                    color: score ? COLORS.persianGreen : '#666',
-                    textAlign: 'right'
+                    fontWeight: index < 3 ? 'bold' : 'normal',
+                    color: score ? COLORS.persianGreen : '#444',
+                    textAlign: 'right',
+                    fontSize: 'clamp(0.7rem, 1.8vw, 0.9rem)'
                   }}>
-                    {score ? score.score.toLocaleString() : '---'}
+                    {score ? (score.score >= 1000000 ? 
+                      `${(score.score / 1000000).toFixed(1)}M` : 
+                      score.score >= 1000 ? 
+                      `${(score.score / 1000).toFixed(0)}K` : 
+                      score.score.toLocaleString()) : '---'}
                   </div>
                   
                   <div style={{
-                    color: score ? COLORS.lightCyan : '#666',
-                    textAlign: 'right'
+                    color: score ? COLORS.lightCyan : '#444',
+                    textAlign: 'right',
+                    fontSize: 'clamp(0.7rem, 1.8vw, 0.9rem)'
                   }}>
                     {score ? score.level : '--'}
                   </div>
