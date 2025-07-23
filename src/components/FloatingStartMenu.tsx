@@ -1,5 +1,5 @@
 import { useGameStore } from '../store/gameStore';
-import { initSounds } from '../utils/soundManager';
+import { initSounds, soundManager } from '../utils/soundManager';
 
 const FloatingStartMenu = () => {
   const { gameState, startGame } = useGameStore();
@@ -64,7 +64,18 @@ const FloatingStartMenu = () => {
         {/* Start Button */}
         <button
           onClick={async () => {
+            console.log('Initializing sounds...');
             await initSounds(); // Initialize sounds on first interaction
+            
+            // Test sound system
+            const soundWorking = await soundManager.testSound();
+            console.log('Sound system status:', soundWorking ? 'Working' : 'Failed');
+            
+            if (soundWorking) {
+              // Play a quick test sound to confirm
+              setTimeout(() => soundManager.playInterceptor(0.3), 100);
+            }
+            
             startGame();
           }}
           style={{

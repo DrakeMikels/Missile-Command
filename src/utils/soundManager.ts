@@ -5,6 +5,7 @@ class SoundManager {
   private audioContext: AudioContext | null = null;
   private masterVolume = 0.3;
   private sounds: { [key: string]: AudioBuffer } = {};
+  private _enabled = true;
 
   constructor() {
     this.initAudioContext();
@@ -12,7 +13,15 @@ class SoundManager {
 
   private initAudioContext() {
     try {
-      this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      // Check if Web Audio API is available
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContextClass) {
+        console.warn('Web Audio API not supported in this browser');
+        return;
+      }
+      
+      this.audioContext = new AudioContextClass();
+      console.log('Audio context created successfully');
     } catch (error) {
       console.warn('Web Audio API not supported:', error);
     }
@@ -20,7 +29,14 @@ class SoundManager {
 
   private async resumeAudioContext() {
     if (this.audioContext && this.audioContext.state === 'suspended') {
-      await this.audioContext.resume();
+      console.log('Resuming suspended audio context...');
+      try {
+        await this.audioContext.resume();
+        console.log('Audio context resumed successfully');
+      } catch (error) {
+        console.warn('Failed to resume audio context:', error);
+        throw error;
+      }
     }
   }
 
@@ -207,24 +223,43 @@ class SoundManager {
 
   // Initialize all sounds
   public async init() {
-    if (!this.audioContext) return;
+    if (!this.audioContext) {
+      console.warn('No audio context available');
+      return;
+    }
 
-    await this.resumeAudioContext();
+    try {
+      await this.resumeAudioContext();
 
-    this.sounds = {
-      explosion: this.createExplosionSound(),
-      missileLaunch: this.createMissileLaunchSound(),
-      interceptor: this.createInterceptorSound(),
-      powerUp: this.createPowerUpSound(),
-      cityDestroy: this.createCityDestroySound(),
-      gameOver: this.createGameOverSound(),
-      levelComplete: this.createLevelCompleteSound()
-    };
+      // Test if we can create sounds
+      const testBuffer = this.createExplosionSound();
+      if (!testBuffer) {
+        console.warn('Failed to create test sound buffer');
+        return;
+      }
+
+      this.sounds = {
+        explosion: this.createExplosionSound(),
+        missileLaunch: this.createMissileLaunchSound(),
+        interceptor: this.createInterceptorSound(),
+        powerUp: this.createPowerUpSound(),
+        cityDestroy: this.createCityDestroySound(),
+        gameOver: this.createGameOverSound(),
+        levelComplete: this.createLevelCompleteSound()
+      };
+
+      console.log('Sound system initialized successfully', {
+        audioContextState: this.audioContext.state,
+        soundsLoaded: Object.keys(this.sounds).length
+      });
+    } catch (error) {
+      console.warn('Failed to initialize sound system:', error);
+    }
   }
 
   // Play a sound with optional volume and pitch adjustment
   public async playSound(soundName: string, volume: number = 1, pitch: number = 1) {
-    if (!this.audioContext || !this.sounds[soundName]) return;
+    if (!this._enabled || !this.audioContext || !this.sounds[soundName]) return;
 
     await this.resumeAudioContext();
 
@@ -273,6 +308,53 @@ class SoundManager {
   // Set master volume
   public setVolume(volume: number) {
     this.masterVolume = Math.max(0, Math.min(1, volume));
+  }
+
+  // Enable/disable sounds
+  public setEnabled(enabled: boolean) {
+    this._enabled = enabled;
+    console.log(`Sound system ${enabled ? 'enabled' : 'disabled'}`);
+  }
+
+  // Get current enabled state
+  public get enabled(): boolean {
+    return this._enabled;
+  }
+
+  // Toggle sound on/off
+  public toggle(): boolean {
+    this._enabled = !this._enabled;
+    console.log(`Sound system ${this._enabled ? 'enabled' : 'disabled'}`);
+    return this._enabled;
+  }
+
+  // Test if sound system is working
+  public async testSound() {
+    if (!this.audioContext) return false;
+    
+    try {
+      await this.resumeAudioContext();
+      
+      // Play a very quiet test tone
+      const source = this.audioContext.createOscillator();
+      const gainNode = this.audioContext.createGain();
+      
+      source.frequency.setValueAtTime(440, this.audioContext.currentTime);
+      gainNode.gain.setValueAtTime(0.001, this.audioContext.currentTime); // Very quiet
+      gainNode.gain.exponentialRampToValueAtTime(0.0001, this.audioContext.currentTime + 0.1);
+      
+      source.connect(gainNode);
+      gainNode.connect(this.audioContext.destination);
+      
+      source.start();
+      source.stop(this.audioContext.currentTime + 0.1);
+      
+      console.log('Sound test successful');
+      return true;
+    } catch (error) {
+      console.warn('Sound test failed:', error);
+      return false;
+    }
   }
 }
 

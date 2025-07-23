@@ -1,9 +1,17 @@
 import { useGameStore } from '../store/gameStore';
+import { soundManager } from '../utils/soundManager';
+import { useState } from 'react';
 
 const UIOverlay = () => {
   const { gameState, score, level, lives, cities, scoreMultiplier } = useGameStore();
+  const [soundEnabled, setSoundEnabled] = useState(soundManager.enabled);
 
   if (gameState === 'menu') return null;
+
+  const toggleSound = () => {
+    const newState = soundManager.toggle();
+    setSoundEnabled(newState);
+  };
 
   return (
     <div style={{
@@ -69,6 +77,45 @@ const UIOverlay = () => {
         alignItems: 'flex-end',
         gap: 'clamp(2px, 1vh, 8px)'
       }}>
+        {/* Sound Toggle Button */}
+        <button
+          onClick={toggleSound}
+          style={{
+            background: soundEnabled 
+              ? 'linear-gradient(45deg, #00ffff, #0088cc)' 
+              : 'linear-gradient(45deg, #666666, #444444)',
+            border: soundEnabled ? '1px solid #00ffff' : '1px solid #666666',
+            borderRadius: '3px',
+            color: soundEnabled ? '#000' : '#999',
+            fontSize: 'clamp(9px, 1.8vw, 12px)',
+            fontFamily: 'monospace',
+            fontWeight: 'bold',
+            padding: 'clamp(2px, 0.4vw, 3px) clamp(4px, 1vw, 6px)',
+            cursor: 'pointer',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+            transition: 'all 0.2s ease',
+            boxShadow: soundEnabled 
+              ? '0 0 6px rgba(0, 255, 255, 0.4)' 
+              : '0 0 3px rgba(102, 102, 102, 0.3)',
+            alignSelf: 'flex-end'
+          }}
+          onMouseEnter={(e) => {
+            if (soundEnabled) {
+              e.currentTarget.style.boxShadow = '0 0 10px rgba(0, 255, 255, 0.6)';
+              e.currentTarget.style.transform = 'translateY(-1px)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (soundEnabled) {
+              e.currentTarget.style.boxShadow = '0 0 6px rgba(0, 255, 255, 0.4)';
+              e.currentTarget.style.transform = 'translateY(0)';
+            }
+          }}
+        >
+          {soundEnabled ? '🔊' : '🔇'}
+        </button>
+
         {/* Lives */}
         <div style={{
           display: 'flex',
