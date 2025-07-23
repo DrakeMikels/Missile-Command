@@ -133,7 +133,7 @@ const GameManager = () => {
             });
             
             // Play split missile sound (higher pitch)
-            soundManager.playMissileLaunch(0.5, 1.2);
+            soundManager.playSound('missileLaunch', 0.5, 1.2);
           }, 1000 + Math.random() * 2000);
         }
       }, i * (1200 + Math.random() * 1800)); // More staggered missile launches for easier gameplay
